@@ -132,3 +132,5 @@ dmypy.json
 .flatpak-builder/
 flatpak/
 flatpak-pip-generator
+
+uv.lock

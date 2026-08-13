@@ -2,11 +2,11 @@
 Name=eFatura
 GenericName=eFatura Mükellefiyet Sorgu Aracı
 Comment=Vergi veya TC Kimlik Numarasından E-Fatura Mükellefiyet Sorgusu
-Version=1.1.1
+Version=1.1.7
 Keywords=eFatura;KekikAkademi;keyiflerolsun
 Exec=eFaturaGUI
-Icon=org.KekikAkademi.eFatura
+Icon=org.kekikakademi.eFatura
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories=Education;
+Categories=Utility;

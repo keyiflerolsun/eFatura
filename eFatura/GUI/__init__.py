@@ -1,130 +1,197 @@
 # Bu araç @keyiflerolsun tarafından | @KekikAkademi için yazılmıştır.
 
 from gi import require_version
-require_version("Gtk", "3.0")
 
-from gi.repository import Gtk, GLib
+require_version("Gtk", "4.0")
+require_version("Adw", "1")
+
+from gi.repository import Adw, Gtk, GLib, Gdk
 from eFatura       import e_fatura
-from ..Libs        import dosya_ver
+from pathlib       import Path
+import threading
+import sys
 
-class KekikGUI(Gtk.Window):
-    def __init__(self):
+class KekikGUIWindow(Adw.ApplicationWindow):
+    def __init__(self, application: Adw.Application):
         super().__init__(
+            application    = application,
             title          = "eFatura",
-            default_width  = 300,
-            default_height = 200,
-            resizable      = False
+            default_width  = 420,
+            default_height = 520,
+            resizable      = True,
         )
-        self.set_position(Gtk.WindowPosition.CENTER)
-        self.connect("delete-event", self.pencereyi_kapat)
-        self.set_icon_from_file(dosya_ver("Assets/logo.png", ust_dizin=2))
 
-        ayarlar = Gtk.Settings.get_default()
-        ayarlar.set_property("gtk-application-prefer-dark-theme", True)
-
-        self.header = Gtk.HeaderBar(
-            title             = "eFatura",
-            subtitle          = "Mükellefiyet Sorgu Aracı",
-            show_close_button = True
+        # HeaderBar Setup
+        self.header_bar = Adw.HeaderBar()
+        title_widget    = Adw.WindowTitle(
+            title    = "eFatura",
+            subtitle = "Mükellefiyet Sorgu Aracı",
         )
-        self.hakkinda_butonu = Gtk.Button.new_from_icon_name("help-about", Gtk.IconSize.SMALL_TOOLBAR)
+        self.header_bar.set_title_widget(title_widget)
+
+        self.hakkinda_butonu = Gtk.Button.new_from_icon_name("help-about-symbolic")
+        self.hakkinda_butonu.set_tooltip_text("Hakkında")
         self.hakkinda_butonu.connect("clicked", self.hakkinda_ac)
-        self.header.pack_end(self.hakkinda_butonu)
-        self.set_titlebar(self.header)
+        self.header_bar.pack_end(self.hakkinda_butonu)
 
-        self.pencere = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10, margin=20)
-        self.add(self.pencere)
+        # Main Layout Structure
+        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        main_box.append(self.header_bar)
 
-        # !
-        Program(self)
-        # !
+        clamp       = Adw.Clamp(maximum_size=420)
+        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20)
+        content_box.set_margin_start(20)
+        content_box.set_margin_end(20)
+        content_box.set_margin_top(20)
+        content_box.set_margin_bottom(20)
+        clamp.set_child(content_box)
+        main_box.append(clamp)
 
-    def pencereyi_kapat(self, widget, event):
-        dialog = Gtk.MessageDialog(
-            parent              = self,
-            modal               = True,
-            destroy_with_parent = True,
-            message_type        = Gtk.MessageType.QUESTION,
-            buttons             = Gtk.ButtonsType.OK_CANCEL,
-            text                = "Program Kapanıyor",
+        self.set_content(main_box)
+
+        # Hero Header Banner
+        hero_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        hero_box.set_halign(Gtk.Align.CENTER)
+        hero_box.set_margin_bottom(8)
+
+        hero_icon = Gtk.Image.new_from_icon_name("document-properties-symbolic")
+        hero_icon.set_pixel_size(48)
+        hero_icon.add_css_class("accent")
+        hero_box.append(hero_icon)
+
+        hero_title = Gtk.Label(label="E-Fatura Sorgulama")
+        hero_title.add_css_class("title-2")
+        hero_box.append(hero_title)
+
+        hero_subtitle = Gtk.Label(
+            label="Vergi veya TC Kimlik Numarası ile mükellefiyet durumunu sorgulayın."
         )
-        dialog.format_secondary_text("Bunu yapmak istediğinize emin misiniz?")
-        response = dialog.run()
-        dialog.destroy()
+        hero_subtitle.add_css_class("caption")
+        hero_subtitle.add_css_class("dim-label")
+        hero_subtitle.set_wrap(True)
+        hero_subtitle.set_justify(Gtk.Justification.CENTER)
+        hero_box.append(hero_subtitle)
 
-        if response == Gtk.ResponseType.OK:
-            Gtk.main_quit()
-        else:
-            return True
+        content_box.append(hero_box)
 
-    def goster(self):
-        self.show_all()
-        Gtk.main()
+        # Input Card Group (Adw.PreferencesGroup)
+        input_group    = Adw.PreferencesGroup()
+        self.arama_row = Adw.EntryRow(title="Vergi / TC Kimlik No")
+        self.arama_row.connect("entry-activated", self.ara_butonuna_tiklandiginda)
+        input_group.add(self.arama_row)
+        content_box.append(input_group)
 
-    def hakkinda_ac(self, widget):
-        self.hakkinda = Gtk.AboutDialog(
-            transient_for  = self,
-            modal          = True,
-            logo_icon_name = "org.KekikAkademi.eFatura",
-            program_name   = "eFatura Sorgu",
-            version        = "1.0.8",
-            comments       = "Vergi veya TC Kimlik Numarasından E-Fatura Mükellefiyet Sorgusu",
-            website_label  = "Bağış Yap",
-            website        = "https://keyiflerolsun.dev/Kahve",
-            copyright      = "Copyright (C) 2023 by keyiflerolsun",
-            license_type   = Gtk.License.GPL_3_0,
-            authors        = ["keyiflerolsun"]
-        )
-        self.hakkinda.add_credit_section(("Özel Teşekkürler"), ("@KekikAkademi", "@KekikKahve"))
-        self.hakkinda.connect("response", self.__hakkinda_takip)
-        self.hakkinda.show()
-
-    def __hakkinda_takip(self, dialog, response_id):
-        if response_id in [Gtk.ResponseType.CLOSE, Gtk.ResponseType.DELETE_EVENT]:
-            dialog.hide()
-
-class Program():
-    def __init__(self, parent:Gtk.Window):
-        self.parent = parent
-
-        sorgu_alani = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        parent.pencere.pack_start(sorgu_alani, False, False, 0)
-
-        self.arama_metni = Gtk.Entry(placeholder_text="Vergi / TC Kimlik Numarası")
-        self.arama_metni.connect("activate", self.ara_butonuna_tiklandiginda)
-        sorgu_alani.pack_start(self.arama_metni, False, False, 0)
-
-        self.ara_butonu = Gtk.Button(label="Ara")
+        # Action Button
+        self.ara_butonu = Gtk.Button(label="Mükellefiyet Sorgula")
+        self.ara_butonu.add_css_class("suggested-action")
+        self.ara_butonu.add_css_class("pill")
         self.ara_butonu.connect("clicked", self.ara_butonuna_tiklandiginda)
-        sorgu_alani.pack_start(self.ara_butonu, False, False, 0)
-        self.ara_butonu.grab_focus()
+        content_box.append(self.ara_butonu)
 
-        self.cikti_alani = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        parent.pencere.pack_start(self.cikti_alani, True, True, 0)
+        # Result / Status Group (Adw.PreferencesGroup & Adw.ActionRow)
+        self.sonuc_group = Adw.PreferencesGroup(title="Sorgu Sonucu")
+
+        self.sonuc_row = Adw.ActionRow(
+            title    = "Henüz Sorgulama Yapılmadı",
+            subtitle = "Yukarıdaki alana numara girip sorgulama yapabilirsiniz.",
+        )
+        self.sonuc_icon = Gtk.Image.new_from_icon_name("info-symbolic")
+        self.sonuc_row.add_prefix(self.sonuc_icon)
+
+        self.spinner = Gtk.Spinner()
+        self.spinner.set_visible(False)
+        self.sonuc_row.add_suffix(self.spinner)
+
+        self.sonuc_group.add(self.sonuc_row)
+        content_box.append(self.sonuc_group)
 
     def ara_butonuna_tiklandiginda(self, widget):
-        self.ara_butonu.grab_focus()
-        arama_sorgusu = self.arama_metni.get_text()
-        self.arama_metni.set_text("")
+        sorgu = self.arama_row.get_text().strip()
+        if not sorgu:
+            self.sonuc_row.set_title("Eksik Bilgi")
+            self.sonuc_row.set_subtitle("Lütfen geçerli bir Vergi veya TC Kimlik Numarası girin.")
+            self.sonuc_icon.set_from_icon_name("dialog-warning-symbolic")
+            return
 
-        self.cikti_alani.foreach(Gtk.Widget.destroy)
+        # Loading State
+        self.arama_row.set_sensitive(False)
+        self.ara_butonu.set_sensitive(False)
+        self.spinner.set_visible(True)
+        self.spinner.start()
 
-        bekleme_etiketi = Gtk.Label()
-        bekleme_etiketi.set_markup("<span foreground='#EF7F1A' font_desc='12'>Lütfen Bekleyiniz...</span>")
-        bekleme_etiketi.set_margin_top(10)
-        bekleme_etiketi.set_halign(Gtk.Align.CENTER)
-        bekleme_etiketi.set_justify(Gtk.Justification.CENTER)
-        bekleme_etiketi.set_line_wrap(True)
-        bekleme_etiketi.set_max_width_chars(30)
-        self.cikti_alani.pack_start(bekleme_etiketi, False, False, 0)
-        self.parent.show_all()
+        self.sonuc_row.set_title(f"{sorgu} Sorgulanıyor...")
+        self.sonuc_row.set_subtitle("Gelir İdaresi Başkanlığı sistemlerinden sorgu yapılıyor.")
+        self.sonuc_icon.set_from_icon_name("network-transmit-receive-symbolic")
 
-        def arama_tamamlandi():
-            sonuc = e_fatura(arama_sorgusu)
-            if sonuc:
-                bekleme_etiketi.set_markup(f"<span foreground='#17a2b8' font_desc='12'>{arama_sorgusu} Numarası\nE-Fatura Mükellefidir..</span>")
-            else:
-                bekleme_etiketi.set_markup(f"<span foreground='#dc3545' font_desc='12'>{arama_sorgusu} Numarası\nE-Fatura Mükellefi Değildir..</span>")
-            self.parent.show_all()
+        threading.Thread(target=self._sorgula_arkaplanda, args=(sorgu,), daemon=True).start()
 
-        GLib.timeout_add(100, arama_tamamlandi)
+    def _sorgula_arkaplanda(self, sorgu: str):
+        """GTK ana thread'ini bloklamadan arka planda sorgu çalıştırır."""
+        try:
+            sonuc = e_fatura(sorgu)
+        except Exception:
+            sonuc = None
+
+        GLib.idle_add(self._sorgu_tamamlandi, sorgu, sonuc)
+
+    def _sorgu_tamamlandi(self, sorgu: str, sonuc: bool | None):
+        # Reset Loading State
+        self.spinner.stop()
+        self.spinner.set_visible(False)
+        self.arama_row.set_sensitive(True)
+        self.ara_butonu.set_sensitive(True)
+
+        if sonuc is True:
+            self.sonuc_row.set_title("E-Fatura Mükellefidir")
+            self.sonuc_row.set_subtitle(f"{sorgu} numaralı mükellef E-Fatura sistemine kayıtlıdır.")
+            self.sonuc_icon.set_from_icon_name("emblem-ok-symbolic")
+        elif sonuc is False:
+            self.sonuc_row.set_title("E-Fatura Mükellefi Değildir")
+            self.sonuc_row.set_subtitle(f"{sorgu} numaralı kayıt E-Fatura mükellefleri arasında bulunamadı.")
+            self.sonuc_icon.set_from_icon_name("dialog-error-symbolic")
+        else:
+            self.sonuc_row.set_title("Sorgulama Hatası")
+            self.sonuc_row.set_subtitle(f"{sorgu} sorgulanırken bir ağ veya sunucu hatası oluştu.")
+            self.sonuc_icon.set_from_icon_name("dialog-warning-symbolic")
+
+        return GLib.SOURCE_REMOVE
+
+    def hakkinda_ac(self, widget):
+        dialog = Adw.AboutDialog(
+            application_name = "eFatura Sorgu",
+            developer_name   = "keyiflerolsun",
+            version          = "1.1.7",
+            comments         = "Vergi veya TC Kimlik Numarasından E-Fatura Mükellefiyet Sorgusu",
+            website          = "https://keyiflerolsun.dev/Kahve",
+            copyright        = "Copyright © 2023-2026 keyiflerolsun",
+            license_type     = Gtk.License.GPL_3_0,
+            developers       = ["keyiflerolsun"],
+        )
+        dialog.add_credit_section("Özel Teşekkürler", ["@KekikAkademi", "@KekikKahve"])
+        dialog.present(self)
+
+class KekikGUI(Adw.Application):
+    def __init__(self):
+        super().__init__(
+            application_id = "org.kekikakademi.eFatura",
+            flags          = 0,
+        )
+        Adw.StyleManager.get_default().set_color_scheme(Adw.ColorScheme.PREFER_DARK)
+
+        # pip/uvx gibi izole venv'lere kurulunca ikon sys.prefix/share/icons
+        # altına gidiyor ama bu, GTK'nın varsayılan icon theme arama
+        # yollarında (XDG_DATA_DIRS) değil; burada elle ekliyoruz.
+        icon_dir = Path(sys.prefix) / "share" / "icons"
+        if icon_dir.is_dir():
+            display = Gdk.Display.get_default()
+            if display:
+                Gtk.IconTheme.get_for_display(display).add_search_path(str(icon_dir))
+
+    def do_activate(self):
+        win = self.props.active_window
+        if not win:
+            win = KekikGUIWindow(application=self)
+        win.present()
+
+    def goster(self):
+        self.run(None)

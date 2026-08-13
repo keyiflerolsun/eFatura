@@ -2,7 +2,14 @@
 
 name: Flatpak Yükleyici
 
-on: [push, pull_request]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   FlatpakYukleyici:
@@ -11,19 +18,19 @@ jobs:
 
     steps:
       - name: Depo Kontrolü
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 2
 
-      - name: Python 3.10.8 Yükle
-        uses: actions/setup-python@v4
+      - name: UV Kurulumu
+        uses: astral-sh/setup-uv@v7.6.0
         with:
-          python-version: "3.10.8"
+          enable-cache: true
 
       - name: Değişkenleri Ayarla
         run : |
-          PAKET_V=$(cat setup.py | grep -oP "(?<=version      = \").*?(?=\")")
-          PAKET_ADI=$(cat setup.py | sed -n 's/.*"\(Shared\/\([^"]*\)\.desktop\)".*/\2/p')
+          PAKET_V=$(sed -n 's/^version[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' pyproject.toml | head -n 1)
+          PAKET_ADI=$(sed -n 's/.*"Shared\/\([^"]*\)\.desktop".*/\1/p' pyproject.toml | head -n 1)
 
           echo "PAKET_V=$PAKET_V" >> $GITHUB_ENV
           echo "PAKET_ADI=$PAKET_ADI" >> $GITHUB_ENV
@@ -31,16 +38,30 @@ jobs:
           echo "Paket Adı: $PAKET_ADI"
           echo "Paket Sürümü: $PAKET_V"
 
-      - name: Gereksinimleri Yükle
+      - name: Flatpak Runtime Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/flatpak
+          key: flatpak-runtime-50-${{ runner.os }}
+          restore-keys: |
+            flatpak-runtime-50-
+
+      - name: Flatpak Builder Cache
+        uses: actions/cache@v4
+        with:
+          path: .flatpak-builder
+          key: flatpak-builder-${{ hashFiles('Shared/org.kekikakademi.eFatura.yml', 'Shared/SRC/**') }}
+          restore-keys: |
+            flatpak-builder-
+
+      - name: Flatpak Ortamını Hazırla
         run : |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel pyyaml
           sudo apt update -qq
           sudo apt install -y flatpak flatpak-builder --fix-missing
           flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo --user
           flatpak remote-add --if-not-exists flathub-beta https://flathub.org/beta-repo/flathub-beta.flatpakrepo --user
           flatpak update && flatpak upgrade
-          flatpak install flathub org.gnome.{Platform,Sdk}//44 -y --noninteractive --user
+          flatpak install flathub org.gnome.{Platform,Sdk}//50 -y --noninteractive --user
 
       - name: Paketle
         run : |
@@ -50,10 +71,11 @@ jobs:
 
       - name: Artıkları Temizle
         run : |
-          rm -rf .flatpak* .vscode build-dir && find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
+          find . -maxdepth 1 -name ".flatpak*" ! -name ".flatpak-builder" -exec rm -rf {} +
+          rm -rf .vscode build-dir && find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
 
       - name: Paketi GitHub'a Yükle
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PAKET_ADI }}
           path: ./${{ env.PAKET_ADI }}.flatpak
@@ -61,11 +83,11 @@ jobs:
       - name: Güncelleme Kontrol Et
         id  : guncelleme_var_mi
         run : |
-          if git diff --name-only HEAD^ | grep -q "setup.py"; then echo "degisiklik=true"; else echo "degisiklik=false"; fi >> $GITHUB_OUTPUT
-  
+          if git diff --name-only HEAD^ | grep -q "pyproject.toml"; then echo "degisiklik=true"; else echo "degisiklik=false"; fi >> $GITHUB_OUTPUT
+
       - name: GitHub Release Oluştur
         if  : steps.guncelleme_var_mi.outputs.degisiklik == 'true'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env :
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
