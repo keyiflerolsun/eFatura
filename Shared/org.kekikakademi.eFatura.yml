@@ -1,0 +1,56 @@
+# Bu araç @keyiflerolsun tarafından | @KekikAkademi için yazılmıştır.
+
+app-id: org.kekikakademi.eFatura
+runtime: org.gnome.Platform
+runtime-version: "50"
+sdk: org.gnome.Sdk
+command: eFaturaGUI
+
+finish-args:
+  # ? X11 + XShm Erişimi
+  - --share=ipc
+  # ? Wayland Erişimi
+  - --socket=wayland
+  # ? Wayland mevcut olmadığında X11 Erişimi Ver
+  - --socket=fallback-x11
+  # ? Ağ Erişimi
+  - --share=network
+  # ! tesseract Erişim
+  - --env=TESSDATA_PREFIX=/app/share/tessdata
+
+# ! tesseract Çöpü Temizle
+cleanup:
+  - /sbin
+  - /include
+  - /lib/cmake
+  - /lib/pkgconfig
+  - /bin/protoc
+  - /share/doc
+  - /share/pkgconfig
+  - /share/man
+  - /share/cmake*
+  - "*.a"
+  - "*.la"
+
+modules:
+- SRC/tesseract.yaml
+- SRC/python3-requirements.yaml
+
+- name: eFatura-yukleyici
+  buildsystem: simple
+  build-commands:
+    - python3 -m pip install . --prefix=${FLATPAK_DEST} --no-build-isolation
+    - install -Dm644 Shared/org.kekikakademi.eFatura.appdata.xml /app/share/appdata/$FLATPAK_ID.appdata.xml
+    - install -Dm644 Shared/org.kekikakademi.eFatura.svg /app/share/icons/hicolor/scalable/apps/$FLATPAK_ID.svg
+
+    - sed -i '/^Version/d' Shared/org.kekikakademi.eFatura.desktop
+    - desktop-file-edit --set-icon=$FLATPAK_ID Shared/org.kekikakademi.eFatura.desktop
+    - install -Dm644 Shared/org.kekikakademi.eFatura.desktop /app/share/applications/$FLATPAK_ID.desktop
+
+  # * Lokal Kurulum (İnternet Erişimi Var)
+  build-options:
+    build-args:
+      - "--share=network"
+  sources:
+    - type: dir
+      path: "."

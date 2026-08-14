@@ -1,0 +1,45 @@
+# Bu araç @keyiflerolsun tarafından | @KekikAkademi için yazılmıştır.
+
+name: KekikAkademi PyPI Yükleyici
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "pyproject.toml"
+
+jobs:
+  PyPIYukleyici:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name : Depo Kontrolü
+        uses : actions/checkout@v6.0.2
+
+      - name : UV Kurulumu
+        uses : astral-sh/setup-uv@v7.6.0
+        with :
+          enable-cache: true
+
+      - name : Python Kurulumu
+        run  : uv python install 3.14
+
+      - name : Sistem Bağımlılıklarını Kur
+        run  : |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libcairo2-dev libgirepository-2.0-dev gobject-introspection pkg-config tesseract-ocr
+
+      - name : Testleri Çalıştır
+        run  : uv run --with pytest pytest
+
+      - name : Paketi Derle (Build)
+        run  : uv build
+
+      - name : PyPI'ye Yükle
+        uses : pypa/gh-action-pypi-publish@release/v1
+        with :
+          password: ${{ secrets.PYPI_PASSWORD }}

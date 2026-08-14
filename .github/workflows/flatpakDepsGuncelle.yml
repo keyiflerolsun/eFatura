@@ -1,0 +1,36 @@
+# Bu araç @keyiflerolsun tarafından | @KekikAkademi için yazılmıştır.
+
+name: Flatpak Python Bağımlılıklarını Güncelle
+
+on:
+  workflow_dispatch:
+
+jobs:
+  DepsGuncelle:
+    name    : Bağımlılıkları Güncelle
+    runs-on : ubuntu-latest
+
+    steps:
+      - name: Depo Kontrolü
+        uses: actions/checkout@v6.0.2
+
+      - name: UV Kurulumu
+        uses: astral-sh/setup-uv@v7.6.0
+        with:
+          enable-cache: true
+
+      - name: Flatpak Ortamını Hazırla
+        run : |
+          sudo apt update -qq
+          sudo apt install -y flatpak flatpak-builder --fix-missing
+          flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo --user
+          flatpak install flathub org.gnome.Sdk//50 -y --noninteractive --user
+
+      - name: Bağımlılıkları Yeniden Üret
+        run : bash Shared/SRC/guncelle.sh
+
+      - name: Sonucu Yükle
+        uses: actions/upload-artifact@v4
+        with:
+          name: python3-requirements.yaml
+          path: Shared/SRC/python3-requirements.yaml

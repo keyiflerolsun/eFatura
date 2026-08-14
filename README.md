@@ -1,15 +1,15 @@
-# <a href="#"><img width="32" src="https://raw.githubusercontent.com/keyiflerolsun/eFatura/main/Shared/org.KekikAkademi.eFatura.svg"></a> eFatura
+# <a href="#"><img width="32" src="https://raw.githubusercontent.com/keyiflerolsun/eFatura/main/Shared/org.kekikakademi.eFatura.svg"></a> eFatura
 
 [![Boyut](https://img.shields.io/github/repo-size/keyiflerolsun/eFatura?logo=git&logoColor=white&label=Boyut)](#)
 [![Görüntülenme](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/keyiflerolsun/eFatura&title=Görüntülenme)](#)
 <a href="https://KekikAkademi.org/Kahve" target="_blank"><img src="https://img.shields.io/badge/☕️-Kahve Ismarla-ffdd00" title="☕️ Kahve Ismarla" style="padding-left:5px;"></a>
 
 [![GitHub](https://img.shields.io/github/v/release/keyiflerolsun/eFatura?logo=github&label=GitHub)](https://github.com/keyiflerolsun/eFatura/releases)
-[![Fonksiyon Testleri ve PyPI Yükle](https://img.shields.io/github/actions/workflow/status/keyiflerolsun/eFatura/test_ve_pypi.yml?label=PyPI%20Y%C3%BCkleyici&logo=github)](https://github.com/keyiflerolsun/eFatura/actions/workflows/test_ve_pypi.yml)
+[![Fonksiyon Testleri ve PyPI Yükle](https://img.shields.io/github/actions/workflow/status/keyiflerolsun/eFatura/PyPI.yml?label=PyPI%20Y%C3%BCkleyici&logo=github)](https://github.com/keyiflerolsun/eFatura/actions/workflows/PyPI.yml)
 [![Flatpak Yükleyici](https://img.shields.io/github/actions/workflow/status/keyiflerolsun/eFatura/flatpakYukle.yml?label=Flatpak%20Y%C3%BCkleyici&logo=github)](https://github.com/keyiflerolsun/eFatura/actions/workflows/flatpakYukle.yml)
 
-[![FlatHub](https://img.shields.io/flathub/v/org.KekikAkademi.eFatura?logo=flathub&logoColor=white&label=FlatHub)](https://flathub.org/tr/apps/org.KekikAkademi.eFatura)
-[![FlatHub - Yüklenme](https://img.shields.io/flathub/downloads/org.KekikAkademi.eFatura?logo=flathub&logoColor=white&label=Yüklenme)](https://flathub.org/tr/apps/org.KekikAkademi.eFatura)
+[![FlatHub](https://img.shields.io/flathub/v/org.kekikakademi.eFatura?logo=flathub&logoColor=white&label=FlatHub)](https://flathub.org/tr/apps/org.kekikakademi.eFatura)
+[![FlatHub - Yüklenme](https://img.shields.io/flathub/downloads/org.kekikakademi.eFatura?logo=flathub&logoColor=white&label=Yüklenme)](https://flathub.org/tr/apps/org.kekikakademi.eFatura)
 
 [![PyPI](https://img.shields.io/pypi/v/eFatura?logo=pypi&logoColor=white&label=PyPI)](https://pypi.org/project/eFatura)
 [![PyPI - Yüklenme](https://img.shields.io/pypi/dm/eFatura?logo=pypi&logoColor=white&label=Yüklenme)](https://pypi.org/project/eFatura)
@@ -42,10 +42,10 @@ pip install -U eFatura
 
 ```bash
 # Yüklemek
-flatpak install flathub org.KekikAkademi.eFatura
+flatpak install flathub org.kekikakademi.eFatura
 
 # Çalıştırmak
-flatpak run org.KekikAkademi.eFatura
+flatpak run org.kekikakademi.eFatura
 ```
 
 ## 📝 Kullanım
@@ -75,7 +75,7 @@ eFaturaGUI
 
 # veya
 
-flatpak run org.KekikAkademi.eFatura
+flatpak run org.kekikakademi.eFatura
 ```
 
 ---
@@ -93,9 +93,6 @@ flatpak run org.KekikAkademi.eFatura
 # Depoyu Çek
 https://github.com/keyiflerolsun/eFatura.git
 cd eFatura
-
-# Gerekli Ortamları Kur
-pip install -U pip setuptools wheel
 
 # Paketi Yükle
 pip install .
@@ -125,19 +122,19 @@ mv Shared/*.yml . && mv Shared/SRC .
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak remote-add --if-not-exists flathub-beta https://flathub.org/beta-repo/flathub-beta.flatpakrepo
 flatpak update && flatpak upgrade
-flatpak install flathub org.gnome.{Platform,Sdk}//44
+flatpak install flathub org.gnome.{Platform,Sdk}//50
 
 # Paketle
-flatpak-builder --user --install --force-clean build-dir org.KekikAkademi.eFatura.yml
+flatpak-builder --user --install --force-clean build-dir org.kekikakademi.eFatura.yml
 
 # Artıkları Temizle
 rm -rf .flatpak* .vscode build-dir && find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
 
 # Çalıştır
-flatpak run org.KekikAkademi.eFatura
+flatpak run org.kekikakademi.eFatura
 
 # Paketi Kaldır
-flatpak uninstall org.KekikAkademi.eFatura
+flatpak uninstall org.kekikakademi.eFatura
 ```
 
 </details>

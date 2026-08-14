@@ -8,16 +8,16 @@ modules:
     builddir: true
     sources:
       - type: archive
-        url: https://github.com/DanBloomberg/leptonica/releases/download/1.82.0/leptonica-1.82.0.tar.gz
-        sha256: 155302ee914668c27b6fe3ca9ff2da63b245f6d62f3061c8f27563774b8ae2d6
+        url: https://github.com/DanBloomberg/leptonica/releases/download/1.87.0/leptonica-1.87.0.tar.gz
+        sha256: c73363397f96eb1295602bf44d708a994ad42046c791bf03ea0505d829bdb6a7
 
   - name: tesseract
     buildsystem: cmake-ninja
     builddir: true
     sources:
       - type: archive
-        url: https://github.com/tesseract-ocr/tesseract/archive/refs/tags/5.2.0.zip
-        sha256: f30e343cb93ca77f1fad013aeb87edb9191dcd1c7d4ee55d425f70c2af7817a1
+        url: https://github.com/tesseract-ocr/tesseract/archive/refs/tags/5.5.3.zip
+        sha256: 697d7bf55b53a6c90f5041ffa548f7085aee921da45342c42d57b7cbcb2fa16d
 
   - name: tessdata-fast
     buildsystem: simple

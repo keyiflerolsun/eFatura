@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2023 keyiflerolsun -->
+<component type="desktop-application">
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0</project_license>
+
+  <id type="desktop">org.kekikakademi.eFatura.desktop</id>
+  <launchable type="desktop-id">org.kekikakademi.eFatura.desktop</launchable>
+
+  <name>eFatura</name>
+  <summary>E-Invoice Usage Inquiry from Tax or TR Identity Number</summary>
+  <summary xml:lang="tr_TR">Vergi veya TC Kimlik Numarasından E-Fatura Mükellefiyet Sorgusu</summary>
+
+  <developer id="org.kekikakademi"><name>keyiflerolsun</name></developer>
+  <url type="homepage">https://kekikakademi.org</url>
+  <url type="donation">https://keyiflerolsun.me/Kahve</url>
+  <url type="help">https://t.me/KekikKahve</url>
+  <url type="vcs-browser">https://github.com/keyiflerolsun/eFatura</url>
+  <url type="bugtracker">https://github.com/keyiflerolsun/eFatura/issues</url>
+  <url type="faq">https://blog.keyiflerolsun.dev</url>
+
+  <description>
+    <p>
+      eFatura checks whether a given Tax Number or Turkish Identity Number
+      (TC Kimlik No) is registered for e-invoice usage, by querying Turkey's
+      official e-invoice inquiry system operated by the Revenue
+      Administration (Gelir İdaresi Başkanlığı).
+    </p>
+    <p>
+      It is available as a native GTK4/Libadwaita desktop application, a
+      command-line tool, and a Python library, so you can check a result the
+      way that fits your workflow.
+    </p>
+    <p xml:lang="tr_TR">
+      eFatura, girilen bir Vergi Numarası veya TC Kimlik Numarasının
+      e-Fatura sistemine kayıtlı olup olmadığını, Gelir İdaresi
+      Başkanlığı'nın resmi e-fatura sorgu sisteminden sorgular.
+    </p>
+    <p xml:lang="tr_TR">
+      GTK4/Libadwaita ile yazılmış bir masaüstü uygulaması, bir komut
+      satırı aracı ve bir Python kütüphanesi olarak birlikte gelir; sonucu
+      ihtiyacına en uygun şekilde kontrol edebilirsin.
+    </p>
+  </description>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/keyiflerolsun/eFatura/main/.github/icons/SS.png</image>
+    </screenshot>
+  </screenshots>
+
+  <categories>
+      <category>Utility</category>
+  </categories>
+
+  <releases>
+    <release version="1.1.8" date="2026-08-14">
+      <description>
+        <p>
+          Arayüzde sorgu sırasında uygulamanın kilitlenmesine neden olan
+          asyncio/GLib uyumsuzluğu giderildi, CI ve Flatpak paketleme
+          hataları düzeltildi.
+        </p>
+      </description>
+    </release>
+    <release version="1.1.2" date="2026-08-11">
+      <description>
+        <p>
+          GTK 4 ve Libadwaita grafik arayüzüne geçildi. Python uv paketleme desteği eklendi.
+        </p>
+      </description>
+    </release>
+    <release version="1.1.1" date="2023-6-25">
+      <description>
+        <p>
+          Çeşitli iyileştirmeler yapıldı..
+        </p>
+      </description>
+    </release>
+    <release version="1.0.5" date="2023-5-23"></release>
+    <release version="0.0.1" date="2022-8-13"></release>
+  </releases>
+
+  <content_rating type="oars-1.1"/>
+</component>
